@@ -109,6 +109,7 @@ void resolverPT() {
         cout << "Variaveis de decisao: \n";
         for (i = 0; i < qtdNos; i++) {
             for (j = 0; j < qtdNos; j++) {
+                if (!arcos[i][j].existe) continue; // variavel nunca entrou no modelo, nem pergunta
                 double v = IloRound(cplex.getValue(x[i][j]));
                 if (v != 0)
                     printf("x[%d][%d]: %.0f\n", i + 1, j - 2, v);
