@@ -38,17 +38,18 @@ vector<No> nos;
 char rotulo[] = "FGHMNPQRS"; // rotulos usados so para exibir a solucao
 
 void resolverPFCM() {
-    IloEnv env;
+    IloEnv env; // iniciar ambiente CPLEX
     int i, j;
     int totalVar = 0, totalRest = 0;
 
-    IloModel model(env);
+    IloModel model(env); // cria modelo
 
     // variaveis de fluxo f_ij; arcos inexistentes ficam travados em 0
     IloArray<IloNumVarArray> f(env);
     for (i = 0; i < qtdNos; i++) {
         f.add(IloNumVarArray(env));
         for (j = 0; j < qtdNos; j++) {
+            // se existe arco, limite superior = infinito, caso contrario, limite superior = 0 - (variaveis devem ser maioreis ou iguais a 0)
             int limiteSuperior = arcos[i][j].existe ? CPXINT_MAX : 0;
             f[i].add(IloIntVar(env, 0, limiteSuperior));
             totalVar++;
@@ -64,8 +65,7 @@ void resolverPFCM() {
     model.add(IloMinimize(env, fo));
     fo.end();
 
-    // balanco de fluxo em cada no: saida - entrada = oferta - demanda
-    // (em nos de transbordo oferta = demanda = 0, logo fica saida = entrada)
+    // balanco de fluxo em cada no: saida - entrada = oferta - demanda (fórmula da restrição)
     for (i = 0; i < qtdNos; i++) {
         IloExpr saida(env), entrada(env);
         for (j = 0; j < qtdNos; j++)
@@ -117,6 +117,7 @@ void resolverPFCM() {
         cout << "Variaveis de decisao: \n";
         for (i = 0; i < qtdNos; i++) {
             for (j = 0; j < qtdNos; j++) {
+                if (!arcos[i][j].existe) continue; // variavel nunca entrou no modelo, nem pergunta
                 double v = IloRound(cplex.getValue(f[i][j]));
                 if (v != 0)
                     printf("f[%c][%c]: %.0f\n", rotulo[i], rotulo[j], v);
